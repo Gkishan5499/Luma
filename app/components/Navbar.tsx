@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
+import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion';
 import { useTheme } from './ThemeProvider';
 import { FaSun, FaMoon } from 'react-icons/fa';
 
 export default function Navbar() {
   const { scrollY } = useScroll();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
 
@@ -118,13 +119,52 @@ export default function Navbar() {
               <FaMoon className="w-5 h-5" />
             )}
           </motion.button>
-          <button className={theme === 'dark' ? 'text-white' : 'text-gray-900'}>
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className={theme === 'dark' ? 'text-white' : 'text-gray-900'}
+            aria-label="Toggle mobile menu"
+          >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
         </div>
       </div>
+      
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className={`md:hidden border-t ${
+              theme === 'dark' ? 'border-white/10 bg-[#0a0a0a]' : 'border-gray-200/50 bg-white'
+            }`}
+          >
+            <div className="max-w-7xl mx-auto px-6 py-4 space-y-4">
+              {navLinks.map((link) => {
+                const isActive = pathname === link.href || (link.href === '/' && pathname === '/');
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`block text-lg font-medium transition-colors duration-300 ${
+                      theme === 'dark'
+                        ? `hover:text-blue-400 ${isActive ? 'text-blue-400' : 'text-gray-300'}`
+                        : `hover:text-blue-600 ${isActive ? 'text-blue-600' : 'text-gray-700'}`
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.nav>
   );
 }
